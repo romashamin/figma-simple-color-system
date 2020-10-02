@@ -1,0 +1,108 @@
+<style>
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    font: 11.2px "Helvetica Neue", Arial, sans-serif;
+    line-height: 14px;
+  }
+
+  #styles-list {
+    margin: 0;
+    padding: 8px 0;
+  }
+
+  .styles-row {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0 16px;
+    list-style: none;
+  }
+
+  .assign-operator {
+    width: 16px;
+    height: 16px;
+    color: rgba(0, 0, 0, 0.2);
+  }
+
+  .style-source-input {
+    /* Reset */
+    margin: 0;
+    border: none;
+    background: none transparent;
+    box-shadow: none;
+    /* Styles */
+    padding: 6px 0 6px 6px;
+    border-radius: 1px;
+    font: 11.2px "Helvetica Neue", Arial, sans-serif;
+    line-height: 14px;
+  }
+
+  .style-source-input:hover {
+    background-color: white;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+  }
+
+  .style-source-input:focus {
+    outline: none;
+    background-color: white;
+    box-shadow: inset 0 0 0 1px #18a0fb, 0 0 0 1px #18a0fb;
+  }
+
+  .flexible-width {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .fixed-width {
+    flex: 0 0 16px;
+  }
+</style>
+
+<ul id="styles-list"></ul>
+
+<script>
+  function markupRow(receiverSourceData) {
+    return `<li class="styles-row">
+    <span class="style-receiver flexible-width">${receiverSourceData.receiver.name}</span>
+    <span class="assign-operator fixed-width"> = </span>
+    <input
+      class="style-source-input flexible-width"
+      type="text"
+      placeholder="None"
+      value="${receiverSourceData.source.name}"
+      data-receiver-id="${receiverSourceData.receiver.id}"
+    >
+  </li>`;
+  }
+
+  function handleTextFieldChange(event) {
+    parent.postMessage(
+      {
+        pluginMessage: {
+          type: "update-source",
+          newSourceName: event.target.value,
+          receiverId: event.target.dataset.receiverId,
+        },
+      },
+      "*"
+    );
+  }
+
+  const stylesListElement = document.getElementById("styles-list");
+  stylesListElement.addEventListener("change", handleTextFieldChange);
+
+  onmessage = ({ data: { pluginMessage } }) => {
+    const messageType = pluginMessage.type;
+
+    if (messageType === "render") {
+      const stylesNames = pluginMessage.receiverSourceData;
+      const rowHTML = pluginMessage.receiverSourceData.reduce(
+        (resultString, pair) => resultString + markupRow(pair),
+        ""
+      );
+      stylesListElement.innerHTML = rowHTML;
+    }
+  };
+</script>
